@@ -341,6 +341,15 @@ function setConnected(state) {
   dot.className = 'status-dot' + (state === true ? ' connected' : state === 'error' ? ' error' : '');
   text.textContent = state === true ? 'Connected' : state === 'error' ? 'Error' : 'Disconnected';
 
+  const btn = $('btn-connect');
+  if (state === true) {
+    btn.textContent = 'Disconnect';
+    btn.classList.remove('primary');
+  } else {
+    btn.textContent = 'Connect';
+    btn.classList.add('primary');
+  }
+
   const enable = state === true;
   $('btn-refresh').disabled = !enable;
   $('btn-scan').disabled = !enable;
@@ -348,6 +357,23 @@ function setConnected(state) {
   $('input-current').disabled = !enable;
   $('btn-set-voltage').disabled = !enable;
   $('btn-set-current').disabled = !enable;
+}
+
+function resetFields() {
+  const vals = ['val-serial', 'val-hwid', 'val-fw', 'val-mfg', 'val-authlock',
+                'val-vlimit-low', 'val-vlimit-high'];
+  for (const id of vals) setVal(id, null);
+
+  const el = $('val-voltage');
+  el.textContent = '-- V';
+  el.classList.add('placeholder');
+  const el2 = $('val-current');
+  el2.textContent = '-- A';
+  el2.classList.add('placeholder');
+
+  $('input-voltage').value = '';
+  $('input-current').value = '';
+  $('pdo-content').innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem;">Connect to view PDO log.</p>';
 }
 
 function setVal(id, value, suffix = '') {
@@ -380,8 +406,15 @@ function setBusy(state) {
   }
 }
 
-async function connect() {
+async function connectDisconnect() {
   if (busy) return;
+  if (vflex.connected) {
+    vflex.disconnect();
+    setConnected(false);
+    resetFields();
+    setStatus('Disconnected.', '');
+    return;
+  }
   setBusy(true);
   setStatus('Connecting...');
   try {
@@ -613,7 +646,7 @@ function infoSnippet(label, value) {
 }
 
 // Event listeners
-$('btn-connect').addEventListener('click', connect);
+$('btn-connect').addEventListener('click', connectDisconnect);
 $('btn-refresh').addEventListener('click', () => { if (!busy) { setBusy(true); readAll(); } });
 $('btn-set-voltage').addEventListener('click', setVoltage);
 $('btn-set-current').addEventListener('click', setCurrentLimit);
