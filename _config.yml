@@ -1,1 +1,5 @@
 remote_theme: just-the-docs/just-the-docs
+
+# Show all heading levels in the right-hand table of contents
+toc:
+  heading_level: 3
