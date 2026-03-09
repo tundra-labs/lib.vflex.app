@@ -318,6 +318,10 @@ class VFLEX {
     return this.sendCommand(VFLEX_COMMANDS.CMD_VMEASURE);
   }
 
+  async clearPdoLog() {
+    return this.sendCommand(VFLEX_COMMANDS.CMD_PDO_LOG, new Uint8Array(0), true);
+  }
+
   async getFullPdoLog() {
     this.device_data.pdo_payload = [];
 
@@ -506,6 +510,6 @@ class VFLEX {
     }
     output += '--- End PDO Log ---\n';
 
-    return { logData, output };
+    return { logData, parsed_pdos, output };
   }
 }
