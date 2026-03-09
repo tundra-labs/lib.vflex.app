@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VFLEX Configuration Tool</title>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --border: #e0e0e0;
+      --text: #1a1a1a;
+      --text-secondary: #666;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .container { max-width: 920px; margin: 0 auto; padding: 1rem; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .header h1 { font-size: 1.4rem; font-weight: 700; }
+    .header-controls { display: flex; align-items: center; gap: 0.5rem; }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #aaa;
+      flex-shrink: 0;
+    }
+    .status-dot.connected { background: var(--success); }
+    .status-dot.error { background: var(--danger); }
+
+    /* Buttons */
+    button {
+      padding: 0.45em 1em;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    button:hover:not(:disabled) { background: #f5f5f5; border-color: #ccc; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    button.primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    /* Info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+    .info-item label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+    }
+    .info-item .val {
+      font-size: 0.95rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+    .val.placeholder { color: #bbb; }
+
+    /* Control card */
+    .control-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .control-card label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+    }
+    .control-card .current-val {
+      font-size: 1.5rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 0.25rem;
+    }
+    .control-card .current-val.placeholder { color: #bbb; }
+    .input-row {
+      display: flex;
+      gap: 0.4rem;
+      max-width: 280px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 0.45em 0.6em;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+    }
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+    }
+
+    /* PDO table */
+    .pdo-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .flags-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.25rem 1rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+    }
+    .flag-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .flag-icon { font-size: 0.75rem; }
+    .flag-icon.on { color: var(--success); }
+    .flag-icon.off { color: #ccc; }
+
+    table.pdo-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .pdo-table th, .pdo-table td {
+      padding: 0.4em 0.6em;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .pdo-table th {
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      background: #fafafa;
+    }
+    .pdo-table tr.selected { background: #eff6ff; }
+
+    /* Status bar */
+    .status-bar {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      padding: 0.5rem 0;
+      min-height: 1.5em;
+    }
+    .status-bar.error { color: var(--danger); }
+    .status-bar.success { color: var(--success); }
+
+    .card-row {
+      display: flex;
+      gap: 1rem;
+    }
+    .card-row > .card {
+      flex: 1;
+      min-width: 0;
+    }
+
+    @media (max-width: 600px) {
+      .header { flex-direction: column; align-items: flex-start; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .card-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>VFLEX Configuration Tool</h1>
+    <div class="header-controls">
+      <div class="status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Disconnected</span>
+      </div>
+      <button class="primary" id="btn-connect">Connect</button>
+      <button id="btn-refresh" disabled>Refresh All</button>
+      <button id="btn-scan" disabled>Scan Mode</button>
+    </div>
+  </div>
+
+  <div class="status-bar" id="status-bar"></div>
+
+  <!-- Device Info -->
+  <div class="card">
+    <h2>Device Information</h2>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Serial Number</label>
+        <div class="val placeholder" id="val-serial">--</div>
+      </div>
+      <div class="info-item">
+        <label>Hardware ID</label>
+        <div class="val placeholder" id="val-hwid">--</div>
+      </div>
+      <div class="info-item">
+        <label>Firmware Version</label>
+        <div class="val placeholder" id="val-fw">--</div>
+      </div>
+      <div class="info-item">
+        <label>Manufacturing Date</label>
+        <div class="val placeholder" id="val-mfg">--</div>
+      </div>
+      <div class="info-item">
+        <label>Auth Lock</label>
+        <div class="val placeholder" id="val-authlock">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voltage & Current -->
+  <div class="card-row">
+    <div class="card">
+      <h2>Output Voltage</h2>
+      <div class="control-card">
+        <div class="current-val placeholder" id="val-voltage">-- V</div>
+        <label>Set new voltage (V)</label>
+        <div class="input-row">
+          <input type="number" id="input-voltage" placeholder="e.g. 5.0" min="0" max="48" step="0.1" disabled>
+          <button class="primary" id="btn-set-voltage" disabled>Set</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Current Limit</h2>
+      <div class="control-card">
+        <div class="current-val placeholder" id="val-current">-- A</div>
+        <label>Set new current limit (A)</label>
+        <div class="input-row">
+          <input type="number" id="input-current" placeholder="e.g. 3.0" min="0" max="5" step="0.1" disabled>
+          <button class="primary" id="btn-set-current" disabled>Set</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voltage Limits & Tolerances -->
+  <div class="card">
+    <h2>Voltage Limits &amp; Tolerances</h2>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Voltage Limit High</label>
+        <div class="val placeholder" id="val-vlimit-high">--</div>
+      </div>
+      <div class="info-item">
+        <label>Voltage Limit Low</label>
+        <div class="val placeholder" id="val-vlimit-low">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDO Log -->
+  <div class="card">
+    <h2>USB PD - Power Data Objects</h2>
+    <div id="pdo-content">
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">Connect to view PDO log.</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="vflex-lib.js"></script>
+<script>
+const vflex = new VFLEX();
+vflex.logLevel = 'silent';
+
+const lockNames = ['Unlocked', 'Limits locked', 'All locked', 'Reserved 0', 'Reserved 1'];
+
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+function setStatus(msg, level = '') {
+  const bar = $('status-bar');
+  bar.textContent = msg;
+  bar.className = 'status-bar' + (level ? ' ' + level : '');
+}
+
+function setConnected(state) {
+  const dot = $('status-dot');
+  const text = $('status-text');
+  dot.className = 'status-dot' + (state === true ? ' connected' : state === 'error' ? ' error' : '');
+  text.textContent = state === true ? 'Connected' : state === 'error' ? 'Error' : 'Disconnected';
+
+  const enable = state === true;
+  $('btn-refresh').disabled = !enable;
+  $('btn-scan').disabled = !enable;
+  $('input-voltage').disabled = !enable;
+  $('input-current').disabled = !enable;
+  $('btn-set-voltage').disabled = !enable;
+  $('btn-set-current').disabled = !enable;
+}
+
+function setVal(id, value, suffix = '') {
+  const el = $(id);
+  if (value != null && value !== '' && value !== undefined) {
+    el.textContent = value + (suffix ? ' ' + suffix : '');
+    el.classList.remove('placeholder');
+  } else {
+    el.textContent = '--';
+    el.classList.add('placeholder');
+  }
+}
+
+function mvToV(mv) {
+  return mv != null ? (mv / 1000).toFixed(2) : null;
+}
+
+function maToA(ma) {
+  return ma != null ? (ma / 1000).toFixed(2) : null;
+}
+
+function setBusy(state) {
+  busy = state;
+  $('btn-connect').disabled = state;
+  if (vflex.connected) {
+    $('btn-refresh').disabled = state;
+    $('btn-scan').disabled = state;
+    $('btn-set-voltage').disabled = state;
+    $('btn-set-current').disabled = state;
+  }
+}
+
+async function connect() {
+  if (busy) return;
+  setBusy(true);
+  setStatus('Connecting...');
+  try {
+    await vflex.tryConnect();
+    setConnected(true);
+    setStatus('Connected. Reading parameters...');
+    await readAll();
+  } catch (err) {
+    setConnected('error');
+    setStatus('Connection failed: ' + err.message, 'error');
+  }
+  setBusy(false);
+}
+
+async function readAll() {
+  if (busy && !vflex.connected) return;
+  setBusy(true);
+  setStatus('Reading device parameters...');
+
+  const reads = [
+    { fn: () => vflex.getString(VFLEX_COMMANDS.CMD_SERIAL_NUMBER),
+      after: () => setVal('val-serial', vflex.device_data.serial_num) },
+    { fn: () => vflex.getString(VFLEX_COMMANDS.CMD_HARDWARE_ID),
+      after: () => setVal('val-hwid', vflex.device_data.hw_id) },
+    { fn: () => vflex.getString(VFLEX_COMMANDS.CMD_FIRMWARE_VERSION),
+      after: () => setVal('val-fw', vflex.device_data.fw_id) },
+    { fn: () => vflex.getString(VFLEX_COMMANDS.CMD_MFG_DATE),
+      after: () => setVal('val-mfg', vflex.device_data.mfg_date) },
+    { fn: () => vflex.getAuthLockLevel(),
+      after: () => {
+        const lvl = vflex.device_data.authlock_level;
+        setVal('val-authlock', lvl != null ? (lockNames[lvl] || 'Unknown') + ' (' + lvl + ')' : null);
+      }},
+    { fn: () => vflex.getVoltageMv(),
+      after: () => setVal('val-voltage', mvToV(vflex.device_data.voltage_mv), 'V') },
+    { fn: () => vflex.getMaxCurrentMa(),
+      after: () => setVal('val-current', maToA(vflex.device_data.max_current_ma), 'A') },
+    { fn: () => vflex.getUserVLimit(),
+      after: () => {
+        setVal('val-vlimit-high', mvToV(vflex.device_data.vlimit_high_mv), 'V');
+        setVal('val-vlimit-low', mvToV(vflex.device_data.vlimit_low_mv), 'V');
+      }},
+  ];
+
+  for (const step of reads) {
+    try {
+      await step.fn();
+      step.after();
+    } catch (err) {
+      // Continue reading remaining parameters even if one fails
+    }
+  }
+
+  // PDO log
+  try {
+    setStatus('Reading PDO log...');
+    const result = await vflex.getFullPdoLog();
+    renderPdoLog(result);
+  } catch (err) {
+    $('pdo-content').innerHTML = '<p style="color:var(--danger);font-size:0.9rem;">Failed to read PDO log: ' + escapeHtml(err.message) + '</p>';
+  }
+
+  setStatus('All parameters loaded.', 'success');
+  setBusy(false);
+}
+
+async function setVoltage() {
+  if (busy) return;
+  const volts = parseFloat($('input-voltage').value);
+  if (isNaN(volts) || volts < 0 || volts > 48) {
+    setStatus('Invalid voltage. Enter 0 - 48 V.', 'error');
+    return;
+  }
+  const mv = Math.round(volts * 1000);
+  setBusy(true);
+  setStatus('Setting voltage to ' + volts + ' V...');
+  try {
+    const payload = new Uint8Array([(mv >> 8) & 0xFF, mv & 0xFF]);
+    await vflex.sendCommand(VFLEX_COMMANDS.CMD_VOLTAGE_MV, payload, true);
+    await vflex.getVoltageMv();
+    setVal('val-voltage', mvToV(vflex.device_data.voltage_mv), 'V');
+    setStatus('Voltage set to ' + mvToV(vflex.device_data.voltage_mv) + ' V.', 'success');
+  } catch (err) {
+    setStatus('Failed to set voltage: ' + err.message, 'error');
+  }
+  setBusy(false);
+}
+
+async function setCurrentLimit() {
+  if (busy) return;
+  const amps = parseFloat($('input-current').value);
+  if (isNaN(amps) || amps < 0 || amps > 5) {
+    setStatus('Invalid current. Enter 0 - 5 A.', 'error');
+    return;
+  }
+  const ma = Math.round(amps * 1000);
+  setBusy(true);
+  setStatus('Setting current limit to ' + amps + ' A...');
+  try {
+    const payload = new Uint8Array([(ma >> 8) & 0xFF, ma & 0xFF]);
+    await vflex.sendCommand(VFLEX_COMMANDS.CMD_CURRENT_LIMIT_MA, payload, true);
+    await vflex.getMaxCurrentMa();
+    setVal('val-current', maToA(vflex.device_data.max_current_ma), 'A');
+    setStatus('Current limit set to ' + maToA(vflex.device_data.max_current_ma) + ' A.', 'success');
+  } catch (err) {
+    setStatus('Failed to set current limit: ' + err.message, 'error');
+  }
+  setBusy(false);
+}
+
+async function scanMode() {
+  if (busy) return;
+  setBusy(true);
+  setStatus('Entering scan mode...');
+  try {
+    await vflex.clearPdoLog();
+    setStatus('Scan mode triggered. Refresh to see updated PDO log.', 'success');
+  } catch (err) {
+    setStatus('Scan mode failed: ' + err.message, 'error');
+  }
+  setBusy(false);
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderPdoLog(result) {
+  const { logData, parsed_pdos } = result;
+  const el = $('pdo-content');
+
+  const flagDefs = [
+    ['PD Request Accepted',   logData.flags, 0x01],
+    ['PD Request Rejected',   logData.flags, 0x02],
+    ['Voltage Within Tolerance', logData.flags, 0x04],
+    ['WebUSB Connection',     logData.flags, 0x08],
+    ['SPR Init PDOs Received', logData.flags2, 0x0001],
+    ['SPR PS Ready',          logData.flags2, 0x0002],
+    ['Non-EPR PS',            logData.flags2, 0x0004],
+    ['EPR Cable Fail',        logData.flags2, 0x0008],
+    ['Non-EPR PS Ready',      logData.flags2, 0x0010],
+    ['Non-EPR PS Reject',     logData.flags2, 0x0020],
+    ['EPR Available',         logData.flags2, 0x0040],
+    ['EPR Enter Request',     logData.flags2, 0x0080],
+    ['EPR Enter Request Ack', logData.flags2, 0x0100],
+    ['EPR Entered',           logData.flags2, 0x0200],
+    ['EPR Rejected',          logData.flags2, 0x0400],
+    ['EPR 1st PDOs Chunk Rx', logData.flags2, 0x0800],
+    ['EPR 2nd PDOs Chunk Rx', logData.flags2, 0x1000],
+    ['EPR PS Ready',          logData.flags2, 0x2000],
+  ];
+
+  const typeNames = ['Fixed', 'Battery', 'Variable', 'Augmented'];
+
+  let html = '';
+
+  // Summary
+  html += '<div class="pdo-summary">';
+  html += infoSnippet('Target Voltage', mvToV(logData.target_voltage_mv) + ' V');
+  html += infoSnippet('Measured Voltage', mvToV(logData.measured_voltage_mv) + ' V');
+  html += infoSnippet('PDOs Received', logData.n_pdos_received);
+  html += infoSnippet('Selected PDO', logData.id_selected_pdo);
+  html += '</div>';
+
+  // Flags
+  html += '<details style="margin-bottom:0.75rem"><summary style="cursor:pointer;font-size:0.85rem;color:var(--text-secondary);">PD Negotiation Flags</summary>';
+  html += '<div class="flags-grid" style="margin-top:0.5rem">';
+  for (const [label, reg, mask] of flagDefs) {
+    const on = (reg & mask) !== 0;
+    html += '<div class="flag-item">';
+    html += '<span class="flag-icon ' + (on ? 'on' : 'off') + '">' + (on ? '\u25CF' : '\u25CB') + '</span>';
+    html += '<span>' + escapeHtml(label) + '</span>';
+    html += '</div>';
+  }
+  html += '</div></details>';
+
+  // PDO table
+  html += '<table class="pdo-table"><thead><tr>';
+  html += '<th>#</th><th>Type</th><th>Voltage</th><th>Current / Power</th>';
+  html += '</tr></thead><tbody>';
+
+  for (let i = 0; i < logData.n_pdos_received; i++) {
+    const p = parsed_pdos[i];
+    const selected = i === logData.id_selected_pdo - 1;
+    html += '<tr' + (selected ? ' class="selected"' : '') + '>';
+    html += '<td>' + (i + 1) + (selected ? ' *' : '') + '</td>';
+    html += '<td>' + typeNames[p.type] + (p.subtype ? '<br><small>' + escapeHtml(p.subtype) + '</small>' : '') + '</td>';
+
+    // Voltage column
+    if (p.type === 0) {
+      html += '<td>' + mvToV(p.voltage_mv) + ' V</td>';
+    } else if (p.type === 1 || p.type === 2 || (p.type === 3 && (p.apdo_subtype === 0 || p.apdo_subtype === 1))) {
+      html += '<td>' + mvToV(p.min_voltage_mv) + ' - ' + mvToV(p.max_voltage_mv) + ' V</td>';
+    } else {
+      html += '<td>--</td>';
+    }
+
+    // Current / Power column
+    if (p.type === 0) {
+      html += '<td>' + maToA(p.max_current_ma) + ' A</td>';
+    } else if (p.type === 1) {
+      html += '<td>' + (p.max_power_mw / 1000).toFixed(1) + ' W</td>';
+    } else if (p.type === 2) {
+      html += '<td>' + maToA(p.max_current_ma) + ' A</td>';
+    } else if (p.type === 3 && p.apdo_subtype === 0) {
+      html += '<td>' + maToA(p.max_current_ma) + ' A</td>';
+    } else if (p.type === 3 && p.apdo_subtype === 1) {
+      html += '<td>' + p.pdp_watts + ' W PDP</td>';
+    } else if (p.type === 3 && p.apdo_subtype === 2) {
+      html += '<td>' + maToA(p.max_current_20v_ma) + ' A @20V</td>';
+    } else {
+      html += '<td>--</td>';
+    }
+
+    html += '</tr>';
+  }
+
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function infoSnippet(label, value) {
+  return '<div class="info-item"><label>' + escapeHtml(label) + '</label><div class="val">' + escapeHtml(String(value)) + '</div></div>';
+}
+
+// Event listeners
+$('btn-connect').addEventListener('click', connect);
+$('btn-refresh').addEventListener('click', () => { if (!busy) { setBusy(true); readAll(); } });
+$('btn-set-voltage').addEventListener('click', setVoltage);
+$('btn-set-current').addEventListener('click', setCurrentLimit);
+$('btn-scan').addEventListener('click', scanMode);
+
+$('input-voltage').addEventListener('keydown', e => { if (e.key === 'Enter') setVoltage(); });
+$('input-current').addEventListener('keydown', e => { if (e.key === 'Enter') setCurrentLimit(); });
+</script>
+</body>
+</html>
