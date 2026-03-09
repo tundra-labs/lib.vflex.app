@@ -6,7 +6,3 @@ plugins:
 exclude:
   - Gemfile.lock
   - README.md
-
-# Show all heading levels in the right-hand table of contents
-toc:
-  heading_level: 3
