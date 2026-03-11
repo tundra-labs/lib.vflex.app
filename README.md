@@ -12,6 +12,14 @@ The **VFLEX Base** is available for $8.00 USD from Werewolf.
 - [Datasheet](https://werewolf.us/vflex/base/datasheet)
 - [User Manual](https://werewolf.us/vflex/user-manual)
 
+## Official VFLEX App
+
+Looking for a full-featured app? The official VFLEX app includes additional features beyond this developer library and is available on web, iOS, and Android.
+
+- [VFLEX Web App](https://vflex.app)
+- [iOS App](https://werewolf.us/vflex-ios)
+- [Android App](https://werewolf.us/vflex-android)
+
 ## About this library
 
 `lib.vflex.js` is a JavaScript library for communicating with the VFLEX device over MIDI using the Web MIDI API. It provides a high-level API for connection management, the custom framing protocol, and command/response parsing — allowing you to configure voltage, current, and read device diagnostics directly from a browser.
