@@ -1,7 +1,7 @@
 ---
 title: MIDI Communication Protocol
 parent: lib.vflex.app
-nav_order: 1
+nav_order: 3
 ---
 
 # MIDI Communication Protocol

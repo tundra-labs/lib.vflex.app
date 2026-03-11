@@ -1,7 +1,7 @@
 ---
 title: API Reference
 parent: lib.vflex.app
-nav_order: 4
+nav_order: 6
 ---
 
 # API Reference

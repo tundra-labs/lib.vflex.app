@@ -1,7 +1,7 @@
 ---
 title: Browser Requirements
 parent: lib.vflex.app
-nav_order: 5
+nav_order: 7
 ---
 
 # Browser Requirements
